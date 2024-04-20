@@ -33,14 +33,14 @@ func init() {
 }
 
 func main() {
-    dbUsername := os.Getenv("DB_USERNAME")
-    dbPassword := os.Getenv("DB_PASSWORD")
-    dbHost := os.Getenv("DB_HOST")
-    dbPort := os.Getenv("DB_PORT")
-    dbName := os.Getenv("DB_NAME")
+    dbUsername := os.Getenv("DATABASE_USERNAME")
+    dbPassword := os.Getenv("DATABASE_PASSWORD")
+    dbHost := os.Getenv("DATABASE_HOST")
+    dbPort := os.Getenv("DATABASE_PORT")
+    dbName := os.Getenv("DATABASE_NAME")
 
-    dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUsername, dbPassword, dbHost, dbPort, dbName)
-
+    dsn := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=require", dbUsername, dbPassword, dbHost, dbPort, dbName)
+    
     var err error
     db, err = sql.Open("postgres", dsn)
     if err != nil {
