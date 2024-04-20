@@ -8,7 +8,7 @@ import (
     "os"
 
     "github.com/gin-gonic/gin"
-    _ "github.com/lib/pq"
+    _ "github.com/go-sql-driver/mysql"
     "github.com/joho/godotenv"
 )
 
@@ -33,16 +33,15 @@ func init() {
 }
 
 func main() {
-    dbUsername := os.Getenv("DATABASE_USERNAME")
-    dbPassword := os.Getenv("DATABASE_PASSWORD")
-    dbHost := os.Getenv("DATABASE_HOST")
-    dbPort := os.Getenv("DATABASE_PORT")
-    dbName := os.Getenv("DATABASE_NAME")
+    dbUsername := os.Getenv("DB_USERNAME")
+    dbPassword := os.Getenv("DB_PASSWORD")
+    dbHost := os.Getenv("DB_HOST")
+    dbPort := os.Getenv("DB_PORT")
+    dbName := os.Getenv("DB_NAME")
 
-    dsn := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=require", dbUsername, dbPassword, dbHost, dbPort, dbName)
-    
+    dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUsername, dbPassword, dbHost, dbPort, dbName)
     var err error
-    db, err = sql.Open("postgres", dsn)
+    db, err = sql.Open("mysql", dsn)
     if err != nil {
         log.Fatalf("Failed to connect to database: %v", err)
     }
