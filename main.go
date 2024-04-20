@@ -58,8 +58,12 @@ func main() {
     router.GET("/", homePage)
     router.GET("/trains", getAllTrains)
     router.GET("/planes", getAllPlanes)
+
     router.POST("/trains/add", insertTrain)
     router.POST("/planes/add", insertPlane)
+
+    router.DELETE("/trains/:id", deleteTrain)
+    router.DELETE("/planes/:id", deletePlane)
 
     port := os.Getenv("PORT")
     router.Run(":" + port)
@@ -170,4 +174,24 @@ func insertPlane(c *gin.Context) {
 func handleDBError(c *gin.Context, err error) {
     log.Printf("Database error: %v", err)
     c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+}
+
+func deleteTrain(c *gin.Context) {
+    id := c.Param("id")
+    _, err := db.Exec("DELETE FROM trains WHERE train_id = $1", id)
+    if err != nil {
+        handleDBError(c, err)
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Train deleted successfully"})
+}
+
+func deletePlane(c *gin.Context) {
+    id := c.Param("id")
+    _, err := db.Exec("DELETE FROM planes WHERE plane_id = $1", id)
+    if err != nil {
+        handleDBError(c, err)
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Plane deleted successfully"})
 }
