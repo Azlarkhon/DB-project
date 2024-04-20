@@ -8,7 +8,7 @@ import (
     "os"
 
     "github.com/gin-gonic/gin"
-    _ "github.com/go-sql-driver/mysql"
+    _ "github.com/lib/pq"
     "github.com/joho/godotenv"
 )
 
@@ -31,21 +31,28 @@ func init() {
         log.Fatal("Error loading .env file")
     }
 }
-
 func main() {
-    dbUsername := os.Getenv("DB_USERNAME")
-    dbPassword := os.Getenv("DB_PASSWORD")
-    dbHost := os.Getenv("DB_HOST")
-    dbPort := os.Getenv("DB_PORT")
-    dbName := os.Getenv("DB_NAME")
+    dbUsername := os.Getenv("DATABASE_USERNAME")
+    dbPassword := os.Getenv("DATABASE_PASSWORD")
+    dbHost := os.Getenv("DATABASE_HOST")
+    dbPort := os.Getenv("DATABASE_PORT")
+    dbName := os.Getenv("DATABASE_NAME")
 
-    dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUsername, dbPassword, dbHost, dbPort, dbName)
+    dsn := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=require", dbUsername, dbPassword, dbHost, dbPort, dbName)
+
     var err error
-    db, err = sql.Open("mysql", dsn)
+    db, err = sql.Open("postgres", dsn)
     if err != nil {
         log.Fatalf("Failed to connect to database: %v", err)
     }
     defer db.Close()
+
+    if err := createTrainsTable(); err != nil {
+        log.Fatalf("Failed to create trains table: %v", err)
+    }
+    if err := createPlanesTable(); err != nil {
+        log.Fatalf("Failed to create planes table: %v", err)
+    }
 
     router := gin.Default()
     router.GET("/", homePage)
@@ -56,6 +63,30 @@ func main() {
 
     port := os.Getenv("PORT")
     router.Run(":" + port)
+}
+
+func createTrainsTable() error {
+    query := `
+        CREATE TABLE IF NOT EXISTS trains (
+            train_id SERIAL PRIMARY KEY,
+            train_name VARCHAR(100) NOT NULL,
+            train_price INTEGER NOT NULL
+        );
+    `
+    _, err := db.Exec(query)
+    return err
+}
+
+func createPlanesTable() error {
+    query := `
+        CREATE TABLE IF NOT EXISTS planes (
+            plane_id SERIAL PRIMARY KEY,
+            plane_name VARCHAR(100) NOT NULL,
+            plane_price INTEGER NOT NULL
+        );
+    `
+    _, err := db.Exec(query)
+    return err
 }
 
 func homePage(c *gin.Context) {
@@ -111,7 +142,7 @@ func insertTrain(c *gin.Context) {
         return
     }
 
-    _, err := db.Exec("INSERT INTO trains (train_name, train_price) VALUES (?, ?)", newTrain.Name, newTrain.Price)
+    _, err := db.Exec("INSERT INTO trains (train_name, train_price) VALUES ($1, $2)", newTrain.Name, newTrain.Price)
     if err != nil {
         handleDBError(c, err)
         return
@@ -127,7 +158,7 @@ func insertPlane(c *gin.Context) {
         return
     }
 
-    _, err := db.Exec("INSERT INTO planes (plane_name, plane_price) VALUES (?, ?)", newPlane.Name, newPlane.Price)
+    _, err := db.Exec("INSERT INTO planes (plane_name, plane_price) VALUES ($1, $2)", newPlane.Name, newPlane.Price)
     if err != nil {
         handleDBError(c, err)
         return
