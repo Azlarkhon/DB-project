@@ -8,7 +8,7 @@ import (
     "os"
 
     "github.com/gin-gonic/gin"
-    _ "github.com/go-sql-driver/mysql"
+    _ "github.com/lib/pq"
     "github.com/joho/godotenv"
 )
 
@@ -42,7 +42,7 @@ func main() {
     dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUsername, dbPassword, dbHost, dbPort, dbName)
 
     var err error
-    db, err = sql.Open("mysql", dsn)
+    db, err = sql.Open("postgres", dsn)
     if err != nil {
         log.Fatalf("Failed to connect to database: %v", err)
     }
@@ -56,9 +56,6 @@ func main() {
     router.POST("/planes/add", insertPlane)
 
     port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
     router.Run(":" + port)
 }
 
