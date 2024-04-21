@@ -186,7 +186,7 @@ func deleteTrain(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"message": "Train deleted successfully"})
 }
 
-func deletePlane(c *gin.Context) {
+func deletePlane(c *gin.Context) {  
     id := c.Param("id")
     _, err := db.Exec("DELETE FROM planes WHERE plane_id = $1", id)
     if err != nil {
