@@ -60,9 +60,6 @@ func main() {
 	if err := createPlanesTable(); err != nil {
 		log.Fatalf("Failed to create planes table: %v", err)
 	}
-	if err := deleteHistory(); err != nil {
-		log.Fatalf("coulnd: %v", err)
-	}
 	if err := createHistoryTable(); err != nil {
 		log.Fatalf("Failed to create history table: %v", err)
 	}
@@ -135,14 +132,6 @@ func createHistoryTable() error {
             history_name VARCHAR(100) NOT NULL,
             history_price INTEGER NOT NULL
         );
-    `
-	_, err := db.Exec(query)
-	return err
-}
-
-func deleteHistory() error {
-	query := `
-        DROP TABLE history;
     `
 	_, err := db.Exec(query)
 	return err
