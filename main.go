@@ -54,6 +54,10 @@ func main() {
 	}
 	defer db.Close()
 
+	if err := dropTable(), err != nil {
+		log.Fatalf("Failed to create trains table: %v", err)
+	}
+
 	if err := createTrainsTable(); err != nil {
 		log.Fatalf("Failed to create trains table: %v", err)
 	}
@@ -120,6 +124,14 @@ func createPlanesTable() error {
             plane_name VARCHAR(100) NOT NULL,
             plane_price INTEGER NOT NULL
         );
+    `
+	_, err := db.Exec(query)
+	return err
+}
+
+func dropTable() error {
+	query := `
+ 	DROP TABLE history;
     `
 	_, err := db.Exec(query)
 	return err
