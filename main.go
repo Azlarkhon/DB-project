@@ -24,6 +24,12 @@ type Plane struct {
 	Price uint   `json:"plane_price"`
 }
 
+type History struct {
+	ID    uint   `json:"history_id"`
+	Name  string `json:"history_name"`
+	Price uint   `json:"history_price"`
+}
+
 var db *sql.DB
 
 func init() {
@@ -31,6 +37,7 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 }
+
 func main() {
 	dbUsername := os.Getenv("DATABASE_USERNAME")
 	dbPassword := os.Getenv("DATABASE_PASSWORD")
@@ -53,6 +60,9 @@ func main() {
 	if err := createPlanesTable(); err != nil {
 		log.Fatalf("Failed to create planes table: %v", err)
 	}
+	if err := createHistoryTable(); err != nil {
+		log.Fatalf("Failed to create history table: %v", err)
+	}
 
 	router := gin.Default()
 
@@ -61,9 +71,11 @@ func main() {
 	router.GET("/", homePage)
 	router.GET("/trains", getAllTrains)
 	router.GET("/planes", getAllPlanes)
+	router.GET("/history", getHistory)
 
 	router.POST("/trains/add", insertTrain)
 	router.POST("/planes/add", insertPlane)
+	router.POST("/history/add", insertHistory)
 
 	router.DELETE("/trains/:id", deleteTrain)
 	router.DELETE("/planes/:id", deletePlane)
@@ -74,19 +86,17 @@ func main() {
 
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Set CORS headers
+
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		c.Header("Access-Control-Allow-Credentials", "true")
 
-		// If it's an OPTIONS request, return immediately with a success status code
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(200)
 			return
 		}
 
-		// Continue processing the request
 		c.Next()
 	}
 }
@@ -113,6 +123,34 @@ func createPlanesTable() error {
     `
 	_, err := db.Exec(query)
 	return err
+}
+
+func createHistoryTable() error {
+	query := `
+        CREATE TABLE IF NOT EXISTS history (
+            train_id SERIAL PRIMARY KEY,
+            train_name VARCHAR(100) NOT NULL,
+            train_price INTEGER NOT NULL
+        );
+    `
+	_, err := db.Exec(query)
+	return err
+}
+
+func insertHistory(c *gin.Context) {
+	var newHistory History
+	if err := c.BindJSON(&newHistory); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error" : err.Error()})
+		return
+	}
+
+	_, err := db.Exec("INSERT INTO history (history_name, history_price) VALUES ($1, $2)",newHistory.Name, newHistory.Price)
+	if err != nil {
+		handleDBError(c, err)
+		return
+	}	
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Added to history created successfully"})
 }
 
 func homePage(c *gin.Context) {
@@ -159,6 +197,27 @@ func getAllPlanes(c *gin.Context) {
 		planes = append(planes, plane)
 	}
 	c.JSON(http.StatusOK, planes)
+}
+
+func getHistory(c *gin.Context) {
+	rows, err := db.Query("SELECT * FROM history")
+		if err != nil {
+			handleDBError(c, err)
+			return
+		}
+	defer rows.Close()
+
+	var histories []History
+	for rows.Next() {
+		var history History
+		err := rows.Scan(&history.ID, &history.Name, &history.Price)
+		if err != nil {
+			handleDBError(c, err)
+			return
+		}
+		histories = append(histories, history)
+	}
+	c.JSON(http.StatusOK, histories)
 }
 
 func insertTrain(c *gin.Context) {
