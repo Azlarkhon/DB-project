@@ -128,9 +128,9 @@ func createPlanesTable() error {
 func createHistoryTable() error {
 	query := `
         CREATE TABLE IF NOT EXISTS history (
-            train_id SERIAL PRIMARY KEY,
-            train_name VARCHAR(100) NOT NULL,
-            train_price INTEGER NOT NULL
+            history_id SERIAL PRIMARY KEY,
+            history_name VARCHAR(100) NOT NULL,
+            history_price INTEGER NOT NULL
         );
     `
 	_, err := db.Exec(query)
@@ -140,15 +140,15 @@ func createHistoryTable() error {
 func insertHistory(c *gin.Context) {
 	var newHistory History
 	if err := c.BindJSON(&newHistory); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error" : err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	_, err := db.Exec("INSERT INTO history (history_name, history_price) VALUES ($1, $2)",newHistory.Name, newHistory.Price)
+	_, err := db.Exec("INSERT INTO history (history_name, history_price) VALUES ($1, $2)", newHistory.Name, newHistory.Price)
 	if err != nil {
 		handleDBError(c, err)
 		return
-	}	
+	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Added to history created successfully"})
 }
@@ -201,10 +201,10 @@ func getAllPlanes(c *gin.Context) {
 
 func getHistory(c *gin.Context) {
 	rows, err := db.Query("SELECT * FROM history")
-		if err != nil {
-			handleDBError(c, err)
-			return
-		}
+	if err != nil {
+		handleDBError(c, err)
+		return
+	}
 	defer rows.Close()
 
 	var histories []History
