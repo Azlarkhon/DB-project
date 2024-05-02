@@ -57,9 +57,11 @@ func main() {
 	if err := createTrainsTable(); err != nil {
 		log.Fatalf("Failed to create trains table: %v", err)
 	}
+	
 	if err := createPlanesTable(); err != nil {
 		log.Fatalf("Failed to create planes table: %v", err)
 	}
+
 	if err := createHistoryTable(); err != nil {
 		log.Fatalf("Failed to create history table: %v", err)
 	}
@@ -79,6 +81,7 @@ func main() {
 
 	router.DELETE("/trains/:id", deleteTrain)
 	router.DELETE("/planes/:id", deletePlane)
+	router.DELETE("/history/:id", deleteHistory)
 
 	port := os.Getenv("PORT")
 	router.Run(":" + port)
@@ -265,6 +268,16 @@ func deleteTrain(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Train deleted successfully"})
+}
+
+func deleteHistory(c *gin.Context) {
+	id := c.Param("id")
+	_, err := db.Exec("DELETE FROM history WHERE history = $1", id)
+	if err != nil {
+		handleDBError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "History deleted successfully"})
 }
 
 func deletePlane(c *gin.Context) {
