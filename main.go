@@ -57,7 +57,7 @@ func main() {
 	if err := createTrainsTable(); err != nil {
 		log.Fatalf("Failed to create trains table: %v", err)
 	}
-	
+
 	if err := createPlanesTable(); err != nil {
 		log.Fatalf("Failed to create planes table: %v", err)
 	}
@@ -272,7 +272,7 @@ func deleteTrain(c *gin.Context) {
 
 func deleteHistory(c *gin.Context) {
 	id := c.Param("id")
-	_, err := db.Exec("DELETE FROM history WHERE history = $1", id)
+	_, err := db.Exec("DELETE FROM history WHERE history_id = $1", id)
 	if err != nil {
 		handleDBError(c, err)
 		return
