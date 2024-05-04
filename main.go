@@ -140,22 +140,6 @@ func createHistoryTable() error {
 	return err
 }
 
-func insertHistory(c *gin.Context) {
-	var newHistory History
-	if err := c.BindJSON(&newHistory); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	_, err := db.Exec("INSERT INTO history (history_name, history_price) VALUES ($1, $2)", newHistory.Name, newHistory.Price)
-	if err != nil {
-		handleDBError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "Added to history created successfully"})
-}
-
 func homePage(c *gin.Context) {
 	c.String(http.StatusOK, "Welcome to my application!")
 }
@@ -253,6 +237,23 @@ func insertPlane(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Plane created successfully"})
+}
+
+
+func insertHistory(c *gin.Context) {
+	var newHistory History
+	if err := c.BindJSON(&newHistory); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := db.Exec("INSERT INTO history (history_name, history_price) VALUES ($1, $2)", newHistory.Name, newHistory.Price)
+	if err != nil {
+		handleDBError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Added to history created successfully"})
 }
 
 func handleDBError(c *gin.Context, err error) {
